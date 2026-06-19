@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 2rem; }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 { text-align: center; color: #6366f1; font-size: 2rem; margin-bottom: 0.5rem; }
+        .subtitle { text-align: center; color: #94a3b8; margin-bottom: 2rem; }
+        .card { background: #1e293b; border-radius: 16px; padding: 2rem; border: 1px solid #334155; margin-bottom: 1.5rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
+        input { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; font-size: 14px; outline: none; }
+        input:focus { border-color: #6366f1; }
+        button { width: 100%; padding: 14px; background: #6366f1; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 1rem; }
+        button:hover { background: #4f46e5; }
+        .result { text-align: center; padding: 1.5rem; border-radius: 12px; margin-top: 1rem; }
+        .high-risk { background: #450a0a; border: 1px solid #ef4444; }
+        .low-risk { background: #052e16; border: 1px solid #22c55e; }
+        .result-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .high-risk .result-title { color: #ef4444; }
+        .low-risk .result-title { color: #22c55e; }
+        .probability { font-size: 1rem; color: #94a3b8; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Disease Prediction System</h1>
+        <p class="subtitle">Enter patient details to predict Diabetes risk using AI</p>
+
+        <div class="card">
+            <div class="grid">
+                <div class="form-group">
+                    <label>Pregnancies</label>
+                    <input type="number" id="pregnancies" placeholder="e.g. 2" min="0" max="20">
+                </div>
+                <div class="form-group">
+                    <label>Glucose Level (mg/dL)</label>
+                    <input type="number" id="glucose" placeholder="e.g. 120" min="0" max="300">
+                </div>
+                <div class="form-group">
+                    <label>Blood Pressure (mmHg)</label>
+                    <input type="number" id="blood_pressure" placeholder="e.g. 80" min="0" max="200">
+                </div>
+                <div class="form-group">
+                    <label>Skin Thickness (mm)</label>
+                    <input type="number" id="skin_thickness" placeholder="e.g. 25" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Insulin (μU/mL)</label>
+                    <input type="number" id="insulin" placeholder="e.g. 80" min="0" max="900">
+                </div>
+                <div class="form-group">
+                    <label>BMI</label>
+                    <input type="number" id="bmi" placeholder="e.g. 28.5" step="0.1" min="0" max="70">
+                </div>
+                <div class="form-group">
+                    <label>Diabetes Pedigree Function</label>
+                    <input type="number" id="diabetes_pedigree" placeholder="e.g. 0.5" step="0.001" min="0" max="3">
+                </div>
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" id="age" placeholder="e.g. 35" min="1" max="120">
+                </div>
+            </div>
+            <button onclick="predict()">🔍 Predict Diabetes Risk</button>
+        </div>
+
+        <div id="result" class="hidden"></div>
+    </div>
+
+    <script>
+        async function predict() {
+            const data = {
+                pregnancies: parseFloat(document.getElementById('pregnancies').value) || 0,
+                glucose: parseFloat(document.getElementById('glucose').value) || 0,
+                blood_pressure: parseFloat(document.getElementById('blood_pressure').value) || 0,
+                skin_thickness: parseFloat(document.getElementById('skin_thickness').value) || 0,
+                insulin: parseFloat(document.getElementById('insulin').value) || 0,
+                bmi: parseFloat(document.getElementById('bmi').value) || 0,
+                diabetes_pedigree: parseFloat(document.getElementById('diabetes_pedigree').value) || 0,
+                age: parseFloat(document.getElementById('age').value) || 0
+            };
+
+            try {
+                const res = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                const div = document.getElementById('result');
+                div.className = `result ${result.prediction === 1 ? 'high-risk' : 'low-risk'}`;
+                div.innerHTML = `
+                    <div class="result-title">${result.prediction === 1 ? '⚠️' : '✅'} ${result.result}</div>
+                    <div class="probability">Diabetes Probability: <strong>${result.probability}%</strong></div>
+                `;
+                div.classList.remove('hidden');
+            } catch (err) {
+                alert('Error connecting to server!');
+            }
+        }
+    </script>
+</body>
+</html>
